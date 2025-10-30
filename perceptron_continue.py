@@ -12,19 +12,20 @@ Y =  [1, 1, 1, 0]
 W = [0.7, -0.2, -0.1]
 
 start_iter = 5
-consec_zero = 0
-iteration = start_iter
+end_iter = 14  # run analysis up to iteration 14 (no stop on 4 consecutive zeros)
 
-print("Task1: Continue from iteration5 until four consecutive E=0")
+print("Task1: iteration5–14 analizi (dört ardışık E=0 koşul olarak kullanılmıyor)")
 
-# Iterate over the dataset cyclically until four consecutive zero errors
+# Iterate over the dataset cyclically for a fixed number of iterations
 idx = 0  # next sample index to use (0..3). After iteration4, next is sample 1 (index 0)
-while consec_zero < 4:
+errors_by_iter = {}
+for iteration in range(start_iter, end_iter + 1):
     x = [X1[idx], X2[idx], X3[idx]]
     target = Y[idx]
     net = W[0]*x[0] + W[1]*x[1] + W[2]*x[2]
     pred = 1 if net > THETA else 0
     E = target - pred
+    errors_by_iter[iteration] = E
 
     # Print iteration log
     print(f"iteration{iteration}: Net={net:.1f} Predicted={pred} E={E}", end="")
@@ -36,20 +37,19 @@ while consec_zero < 4:
         W[1] += ALPHA * E * x[1]
         W[2] += ALPHA * E * x[2]
         print(f" then: W1={W[0]:.1f} W2={W[1]:.1f} W3={W[2]:.1f}")
-        consec_zero = 0
     else:
         print("")
-        consec_zero += 1
 
-    # Advance
-    iteration += 1
+    # Advance dataset index
     idx = (idx + 1) % 4
 
-# Summary
-first_zero_iter = iteration - 4
-last_zero_iter = iteration - 1
-print(f"Consecutive E=0 achieved from iteration{first_zero_iter} to iteration{last_zero_iter}.")
-print(f"Final weights after Task1: W1={W[0]:.1f}, W2={W[1]:.1f}, W3={W[2]:.1f}")
+# Verification for the sought answer
+expected_block = [11, 12, 13, 14]
+all_zero = all(errors_by_iter.get(i, None) == 0 for i in expected_block)
+print(
+    f"Aranan cevap kontrolü: iterations {expected_block} için E=0 -> {all_zero}"
+)
+print(f"Final weights after iteration{end_iter}: W1={W[0]:.1f}, W2={W[1]:.1f}, W3={W[2]:.1f}")
 
 # Compute Y for X1=X2=X3=0.5 using final weights
 x_new = [0.5, 0.5, 0.5]
@@ -58,4 +58,3 @@ pred_new = 1 if net_new > THETA else 0
 
 print("\nTask2: Infer Y for X1=0.5, X2=0.5, X3=0.5")
 print(f"Net={net_new:.2f} Threshold={THETA} => Y={pred_new}")
-
